@@ -13,12 +13,13 @@ namespace DogApp.Controllers
 {
     public class DogsController : Controller
     {
+        private readonly ApplicationDbContext _context;
 
-        private readonly IDogService _dogservice;
+        private readonly IDogService _dogService;
 
         public DogsController(IDogService dogservice)
         {
-            this._dogservice = dogservice;
+            this._dogService = dogservice;
         }
 
         public IActionResult Create()
@@ -32,7 +33,7 @@ namespace DogApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var created = _dogservice.Create(bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
+                var created = _dogService.Create(bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
                 if (created)
                 {
                     return this.RedirectToAction("Success");
@@ -43,7 +44,7 @@ namespace DogApp.Controllers
         }
         public IActionResult Edit(int id)
         {
-            Dog item = _dogservice.GetDogById(id);
+            Dog item = _dogService.GetDogById(id);
             if (item == null)
             {
                 return NotFound();
@@ -64,7 +65,7 @@ namespace DogApp.Controllers
         {
             if (ModelState.IsValid)
             {
-                var update = _dogservice.UpdateDog(id, bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
+                var update = _dogService.UpdateDog(id, bindingModel.Name, bindingModel.Age, bindingModel.Breed, bindingModel.Picture);
                 if (update)
                 {
                     return this.RedirectToAction("All");
@@ -77,7 +78,7 @@ namespace DogApp.Controllers
 
         public IActionResult Delete(int id)
         {
-            Dog item = _dogservice.GetDogById(id);
+            Dog item = _dogService.GetDogById(id);
             if (item == null)
             {
                 return NotFound();
@@ -96,7 +97,7 @@ namespace DogApp.Controllers
         [HttpPost]
         public IActionResult Delete(int id, IFormCollection collection)
         {
-            var deleted = _dogservice.RemoveById(id);
+            var deleted = _dogService.RemoveById(id);
             if (deleted)
             {
                 return this.RedirectToAction("all", "Dogs");
@@ -113,37 +114,40 @@ namespace DogApp.Controllers
 
         public IActionResult All(string searchStringBreed, string searchStringName)
         {
-
-            List<DogAllViewModel> dogs = context.Dogs
-                .Select(dogFromDb=> new DogAllViewModel
-                {
-                    Id=dogFromDb.Id,
-                    Name = dogFromDb.Name,
-                    Age= dogFromDb.Age,
-                    Breed=dogFromDb.Breed,
-                    Picture=dogFromDb.Picture
-                    
-                }).ToList();
-            if (!String.IsNullOrEmpty(searchStringBreed)&& !String.IsNullOrEmpty(searchStringName))
+            List<DogAllViewModel> dogs = _dogService.GetDogs(searchStringBreed, searchStringName)
+            .Select(dogFromDb => new DogAllViewModel
             {
-                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed)&&d.Name.Contains(searchStringName)).ToList();
+               Id = dogFromDb.Id,
+               Name = dogFromDb.Name,
+               Age = dogFromDb.Age,
+               Breed = dogFromDb.Breed,
+               Picture = dogFromDb.Picture
+            }).ToList();
+
+            return this.View(dogs);
+        }
+
+        public List<Dog> GetDogs(string searchStringBreed, string searchStringName)
+        {
+            List<Dog> dogs = _context.Dogs.ToList();
+            if (!String.IsNullOrEmpty(searchStringBreed) && !String.IsNullOrEmpty(searchStringName))
+            {
+                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed) && d.Name.Contains(searchStringName)).ToList();
             }
             else if (!String.IsNullOrEmpty(searchStringBreed))
             {
                 dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed)).ToList();
             }
-            else if (!String.IsNullOrEmpty(searchStringName))
+            else if (!string.IsNullOrEmpty(searchStringName))
             {
                 dogs = dogs.Where(d => d.Name.Contains(searchStringName)).ToList();
             }
-
-            return this.View(dogs);
-
+            return dogs;
         }
 
         public IActionResult Details(int id)
         {
-            Dog item = _dogservice.GetDogById(id);
+            Dog item = _dogService.GetDogById(id);
             if (item == null)
             {
                 return NotFound();

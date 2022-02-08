@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace DogApp.Services
 {
-    public class DogServices:IDogService
+    public class DogService:IDogService
     {
         private readonly ApplicationDbContext _context;
-        public DogServices(ApplicationDbContext context)
+        public DogService(ApplicationDbContext context)
         {
             _context = context;
         }
