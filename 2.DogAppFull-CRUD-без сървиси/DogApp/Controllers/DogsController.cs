@@ -8,18 +8,17 @@ using DogApp.Models;
 using DogApp.Domain;
 using DogApp.Abstractions;
 using Microsoft.AspNetCore.Http;
+using DogApp.Services;
 
 namespace DogApp.Controllers
 {
     public class DogsController : Controller
     {
-        private readonly ApplicationDbContext _context;
-
         private readonly IDogService _dogService;
 
-        public DogsController(IDogService dogservice)
+        public DogsController(IDogService dogsService)
         {
-            this._dogService = dogservice;
+            this._dogService = dogsService;
         }
 
         public IActionResult Create()
@@ -125,24 +124,6 @@ namespace DogApp.Controllers
             }).ToList();
 
             return this.View(dogs);
-        }
-
-        public List<Dog> GetDogs(string searchStringBreed, string searchStringName)
-        {
-            List<Dog> dogs = _context.Dogs.ToList();
-            if (!String.IsNullOrEmpty(searchStringBreed) && !String.IsNullOrEmpty(searchStringName))
-            {
-                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed) && d.Name.Contains(searchStringName)).ToList();
-            }
-            else if (!String.IsNullOrEmpty(searchStringBreed))
-            {
-                dogs = dogs.Where(d => d.Breed.Contains(searchStringBreed)).ToList();
-            }
-            else if (!string.IsNullOrEmpty(searchStringName))
-            {
-                dogs = dogs.Where(d => d.Name.Contains(searchStringName)).ToList();
-            }
-            return dogs;
         }
 
         public IActionResult Details(int id)
