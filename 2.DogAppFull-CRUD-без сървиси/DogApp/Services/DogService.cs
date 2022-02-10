@@ -52,6 +52,12 @@ namespace DogApp.Services
             return dogs;
         }
 
+        public List<Dog> GetDogs()
+        {
+            List<Dog> dogs = _context.Dogs.ToList();
+            return dogs;
+        }
+
         public bool RemoveById(int dogId)
         {
             var dog = GetDogById(dogId);
